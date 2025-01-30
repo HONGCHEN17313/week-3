@@ -1,0 +1,200 @@
+---
+title: "Week 3"
+format: html
+editor: visual
+---
+
+## Welcome to 2\*2 Tables!
+
+```{r}
+install.packages('gssr', repos =
+  c('https://kjhealy.r-universe.dev', 'https://cloud.r-project.org'))
+install.packages('gssrdoc', repos =
+  c('https://kjhealy.r-universe.dev', 'https://cloud.r-project.org'))
+
+library(gssr)
+
+
+```
+
+#First Table
+
+```{r}
+options(repos = c(CRAN = "https://cloud.r-project.org/")) #Chatgpt helped me with this line of code because without it, this part of codes run into error
+install.packages("tidyr")
+install.packages("dplyr")
+library(tidyr)
+library(dplyr)
+```
+
+```{r}
+gss1990 <- gss_get_yr(1990)
+
+a <- gss1990 |>
+  select(divorce, happy) |>
+  drop_na() |>
+  mutate(vdivorce = if_else(divorce == 1,
+                             "Divorced",
+                             "Not divorced"),
+         vhappy = if_else (happy == 1 | happy == 2, #where happy=3 means not too happy
+                           "Happy",
+                           "Not happy")) |>
+  select(vdivorce, vhappy)
+a
+```
+
+```{r}
+library(tinytable)
+
+Contingency_table1 <- a |>
+  group_by(vdivorce, vhappy) |>
+  tally() |>
+  pivot_wider(names_from = vdivorce, values_from = n )
+tt(Contingency_table1)
+```
+
+## 1990 Compute and Interpret
+
+Marginal probability:
+
+Being happy is 0.932, which means in total, 93.2% people are being happy.
+
+```{r}
+(173+655)/(173+655+18+42)
+```
+
+Being divorced is 0.068, which means in total, 6.8% people are divorced.
+
+```{r}
+(18+42)/(172+655+18+42)
+```
+
+Joint probability:
+
+Being divorced and being happy is 0.195, which means among all people, 19.5% people are happy and divorced.
+
+```{r}
+173/(173+655+18+42)
+```
+
+Being unhappy and being not divorced is 0.047, which means among all people, 4.7% people are unhappy and not divorced.
+
+```{r}
+42/(173+655+18+42)
+```
+
+Conditional probability：
+
+Being happy in the condition of being divorced is 0.906, which means among divorced people, 90.6% are happy.
+
+```{r}
+173/(173+18)
+```
+
+Being divorced in the condition of being happy is 0.209 , which means among divorced people, 20.9% are happy.
+
+```{r}
+173/(173+655)
+```
+
+## Second Table
+
+```{r}
+gss2022 <- gss_get_yr(2022)
+b <- gss2022 |>
+  select(divorce, happy) |>
+  drop_na() |>
+  mutate(vdivorce = if_else(divorce == 1,
+                             "Divorced",
+                             "Not divorced"),
+         vhappy = if_else (happy == 1 | happy == 2,
+                           "Happy",
+                           "Not happy")) |>
+  select(vdivorce, vhappy)
+```
+
+```{r}
+library(tinytable)
+
+Contingency_table2 <- b |>
+  group_by(vdivorce, vhappy) |>
+  tally() |>
+  pivot_wider(names_from = vdivorce, values_from = n )
+tt(Contingency_table2)
+```
+
+## 2022 Compute and Interpret
+
+Marginal probability:
+
+Being happy is 0.846, which means in total, 84.6% people are happy.
+
+```{r}
+(424+1257)/(424+1257+101+204)
+```
+
+Being divorced is 0.264, which means in total, 26.4% people are divorced.
+
+```{r}
+(424+101)/(424+1257+101+204)
+
+```
+
+Joint probability:
+
+Being divorced and being happy is 0.213, which means among all people, 21.3% are divorced and happy.
+
+```{r}
+424/(424+1257+101+204)
+```
+
+Being not divorced and being not happy is 0.103, which means among all people, 10.3% are divorced and happy.
+
+```{r}
+204/(424+1257+101+204)
+```
+
+Conditional probability:
+
+Being happy in the condition of being divorced is 0.808, which means among people who are divorced, 80.8% people are happy.
+
+```{r}
+424/(424+101)
+```
+
+Being not divorced in the condition of being happy is 0.748, which means among people who are happy, 74.8% people are not divorced.
+
+```{r}
+1257/(1257+424)
+```
+
+```{r}
+conditionalp <- b |> mutate(num_divorce = if_else(vdivorce == "Divorced",
+                                  1, 0) ) |>
+  group_by(vhappy) |>
+  summarize(conditionalp = mean(num_divorce))
+
+conditionalp
+
+install.packages("ggplot2")
+library(ggplot2)
+ggplot(conditionalp,
+       aes(
+         x= factor(vhappy, labels = c("Happy",
+                                      "Not happy")),
+         y= conditionalp
+       )) +
+  geom_col()+
+  xlab("Happy or Not")+
+  ylab("Percentage of being divorced")
+```
+
+## Changes from 1990 to 2022
+
+```{r}
+#I choose the same variables in two tables so we can have a comparison of the two different period.
+
+#People getting divorced increases from 6.8% in 1990 to 26.4% in 2020.
+
+#...
+```
