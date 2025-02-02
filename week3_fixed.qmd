@@ -1,0 +1,218 @@
+---
+title: "Week 3"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Welcome to 2\*2 Tables!
+
+```{r setup, include=FALSE}
+echo = FALSE
+message = FALSE
+
+library(gssr)
+library(tidyr)
+library(dplyr)
+library(tinytable)
+library(ggplot2)
+options(repos = c(CRAN = "https://cloud.r-project.org/"))
+```
+
+## First Table Year 1990
+
+```{r}
+
+gss1990 <- gss_get_yr(1990)
+select(gss1990, divorce, happy)
+
+a <- gss1990 |>
+  select(divorce, happy) |>
+  drop_na() |>
+  mutate(vdivorce = if_else(divorce == 1,
+                             "Divorced",
+                             "Not divorced"),
+         vhappy = if_else (happy == 1 | happy == 2, #where happy=3 means not too happy
+                           "Happy",
+                           "Not happy")) |>
+  select(vdivorce, vhappy)
+a
+```
+
+```{r}
+
+Contingency_table1 <- a |>
+  group_by(vdivorce, vhappy) |>
+  tally() |>
+  pivot_wider(names_from = vdivorce, values_from = n )
+tt(Contingency_table1)
+```
+
+## 1990 Compute and Interpret
+
+Marginal probability:
+
+Being happy is 0.932, which means in total, 93.2% people are being happy.
+
+```{r}
+(173+655)/(173+655+18+42)
+```
+
+Being divorced is 0.215, which means in total, 21.5% people are divorced.
+
+```{r}
+(173+18)/(172+655+18+42)
+```
+
+Joint probability:
+
+Being divorced and being happy is 0.195, which means among all people, 19.5% people are happy and divorced.
+
+```{r}
+173/(173+655+18+42)
+```
+
+Being unhappy and being not divorced is 0.047, which means among all people, 4.7% people are unhappy and not divorced.
+
+```{r}
+42/(173+655+18+42)
+```
+
+Conditional probability：
+
+Being happy in the condition of being divorced is 0.906, which means among divorced people, 90.6% are happy.
+
+```{r}
+173/(173+18)
+```
+
+Being divorced in the condition of being happy is 0.209 , which means among divorced people, 20.9% are happy.
+
+```{r}
+173/(173+655)
+```
+
+## Second Table Year 2022
+
+```{r}
+gss2022 <- gss_get_yr(2022)
+b <- gss2022 |>
+  select(divorce, happy) |>
+  drop_na() |>
+  mutate(vdivorce = if_else(divorce == 1,
+                             "Divorced",
+                             "Not divorced"),
+         vhappy = if_else (happy == 1 | happy == 2,
+                           "Happy",
+                           "Not happy")) |>
+  select(vdivorce, vhappy)
+```
+
+```{r}
+
+Contingency_table2 <- b |>
+  group_by(vdivorce, vhappy) |>
+  tally() |>
+  pivot_wider(names_from = vdivorce, values_from = n )
+tt(Contingency_table2)
+```
+
+## 2022 Compute and Interpret
+
+Marginal probability:
+
+Being happy is 0.846, which means in total, 84.6% people are happy.
+
+```{r}
+(424+1257)/(424+1257+101+204)
+```
+
+Being divorced is 0.264, which means in total, 26.4% people are divorced.
+
+```{r}
+(424+101)/(424+1257+101+204)
+
+```
+
+Joint probability:
+
+Being divorced and being happy is 0.213, which means among all people, 21.3% are divorced and happy.
+
+```{r}
+424/(424+1257+101+204)
+```
+
+Being not divorced and being not happy is 0.103, which means among all people, 10.3% are divorced and not happy.
+
+```{r}
+204/(424+1257+101+204)
+```
+
+Conditional probability:
+
+Being happy in the condition of being divorced is 0.808, which means among people who are divorced, 80.8% people are happy.
+
+```{r}
+424/(424+101)
+```
+
+Being divorced in the condition of being happy is 0.252, which means among people who are happy, 25.2% people are divorced.
+
+```{r}
+424/(1257+424)
+```
+
+## Changes from 1990 to 2022
+
+Being divorced in the condition of being happy
+
+```{r}
+conditional1990 <- a |> mutate(num_divorce = if_else(vdivorce == "Divorced",
+                                                     1,0)) |>
+  group_by(vhappy) |>
+  summarize(conditional1990 = mean(num_divorce))
+conditional1990
+```
+
+```{r}
+ggplot(conditional1990,
+       aes(x = factor(vhappy, labels = c("Happy",
+                                         "Not Happy")),
+           y = conditional1990
+        )) +
+  geom_col()+
+  xlab("Happy or Not") +
+  ylab("Percentage of Being Divorced") +
+  ggtitle("Divorce Rate by Happiness Level 1990" )+
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+```
+
+```{r}
+conditional2022 <- b |> mutate(num_divorce = if_else(vdivorce == "Divorced",
+                                  1, 0) ) |>
+  group_by(vhappy) |>
+  summarize(conditional2022 = mean(num_divorce))
+
+conditional2022
+```
+
+```{r}
+ggplot(conditional2022,
+       aes(
+         x= factor(vhappy, labels = c("Happy",
+                                      "Not Happy")),
+         y= conditional2022
+       )) +
+  geom_col()+
+  xlab("Happy or Not")+
+  ylab("Percentage of Being Divorced")+
+  ggtitle("Divorce Rate by Happiness Level 2022")+
+  theme(
+    plot.title = element_text(hjust = 0.5)
+  )
+```
+
+In general, the percentage of people being divorced increased from 21.5% in 1990 to 26.4% in 2022. Among people are happy, the percentage of being divorced increased from 20.9% to 25.2%; Among people are not happy, the percentage of being divorced increased from 30.0% to 33.1%.
